@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title></title>
+</head>
+<body>
+<h1>Socket.IO chat room</h1>
+<div id='divContainer1'>
+	<table id='tbDlg'>
+		<tr id='trDlg'>
+			<td id='tdDlg'>
+				<input id='tbxUsername' type="text" value='tourist'>
+				<input id='btnLogin' type="text" value='login'>
+				<input id='btnLogout' type="text" value='logout'>
+			</td>
+		</tr>
+	</table>
+</div>
+<div>
+	<div id='divchat'></div>
+	<div id='divContainer3'>
+		<table id='tbDlg'>
+			<tr id='trDlg'>
+				<td id='tdDlg'>communication</td>
+				<td id='tdDlg'><textarea id="tbxMsg" cols="30" rows="10"></textarea></td>
+				<td id='tdDlg'>
+					<input type="button" id="btnSend" value="send" disabled="true">
+				</td>
+			</tr>
+		</table>
+	</div>
+</div>
+<div></div>
+</body>
+</html>
+<script type="text/javascript">
+let userName, socket, tbxUsername, tbxMsg, divChat;
+
+function $(id) {
+	return document.getElementById(id);
+}
+
+function window_onload() {
+	divChat = $('divchat');
+	tbxUsername = $('tbxUsername');
+	tbxMsg = $('tbxMsg');
+	tbxUsername.focus();
+	tbxUsername.select();//??
+}
+
+function AddMsg(msg) {
+	divChat.innerHTML += msg + '<br />';
+	if (divChat.scrollHeight > divChat.clientHeight) {
+		divChat.scrollTop = divChat.scrollHeight - divChat.clientHeight;
+	}
+}
+
+function btnLogin_onclick() {
+	if (tbxUsername.value.trim() == '') {
+		alert('please input user name.');
+		return;
+	}
+	userName = tbxUsername.value.trim();
+	socket = io.connect();
+	socket.on('connect', () => {
+		AddMsg('finish connection.');
+		socket.on('login', name => {
+			AddMsg(name + 'enters the room.');
+		});
+		socket.on('sendClients', names => {
+			let divRight = $('divRight');
+			let str = '';
+			names.forEach(name => {
+				str += name + '<br />';
+			});
+			divRight.innerHTML = 'user list <br />';
+			divRight.innerHTML += str;
+		});
+		socket.on('chat', data => {
+			AddMsg(data.user + ': ' + data.msg);
+		})
+	});
+	socket.on('disconnect', () => {
+		AddMsg('disconnect to server.');
+		$('btnSend').disabled = true;
+		$('btnLogout').disabled = true;
+		$('btnLogin').disabled = false;
+		$('divRight').innerHTML = 'user list';
+	});
+	socket.on('logout', name => {
+		AddMsg('user ' + name + 'has leave.');
+	});
+	socket.on('duplicate', () => {
+		alert('userName has been used, please change.');
+		$('btnSend').disabled = true;
+		$('btnlogout').disabled = true;
+		$('btnLogin').disabled = false;
+	});
+	socket.on('error', err => {
+		AddMsg('connection error!');
+		socket.disconnect();
+		socket.removeAllListeners('connect');
+		io.sockets = {};
+	});
+	socket.emit('login', userName);
+	$('btnSend').disabled = false;
+	$('btnlogout').disabled = false;
+	$('btnlogin').disabled = true;
+}
+
+function btnSend_onclick() {
+	let msg = tbxMsg.value;
+	if (msg.length > 0) {
+		socket.emit('chat', {user: userName, msg: msg})
+	}
+}
+
+function btnLogout_onclick() {
+	socket.emit('logout', userName);
+	socket.disconnect();
+	socket.removeAllListeners('connect');
+	io.sockets = {};
+	AddMsg('user ' + userName + 'has leave.');
+	let divRight = $('divRight');
+	divRight.innerHTML = 'user list';
+	$('btnSend').disabled = true;
+	$('btnlogout').disabled = true;
+	$('btnLogin').disabled = false;
+}
+
+function window_onunload() {
+	socket.emit('logout', userName);
+	socket.disconnect();
+}
+</script>
