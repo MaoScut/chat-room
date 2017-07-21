@@ -22,6 +22,7 @@ io.sockets.on('connection', socket => {
 		}
 		names.push(name);
 		console.log(names);
+		socket.emit('login_success');
 		io.sockets.emit('login', name);
 		io.sockets.emit('sendClients', names);
 	});

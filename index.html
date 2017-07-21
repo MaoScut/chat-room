@@ -78,8 +78,50 @@ function btnLogin_onclick() {
 	socket = io.connect();
 	socket.on('connect', () => {
 		AddMsg('try connect.');
-		socket.on('login', name => {
-			AddMsg(name + ' enters the room.');
+		// socket.on('login', name => {
+		// 	AddMsg(name + ' enters the room.');
+		// });
+		// socket.on('sendClients', names => {
+		// 	let divRight = $('divRight');
+		// 	let str = '';
+		// 	names.forEach(name => {
+		// 		str += name + '<br />';
+		// 	});
+		// 	divRight.innerHTML = 'user list <br />';
+		// 	divRight.innerHTML += str;
+		// });
+		// socket.on('chat', data => {
+		// 	AddMsg(data.user + ': ' + data.msg);
+		// })
+	});
+	// socket.on('disconnect', () => {
+	// 	AddMsg('disconnect to server.');
+	// 	$('btnSend').disabled = true;
+	// 	$('btnLogout').disabled = true;
+	// 	$('btnLogin').disabled = false;
+	// 	$('divRight').innerHTML = 'user list';
+	// });
+	// socket.on('logout', name => {
+	// 	AddMsg('user ' + name + 'has leave.');
+	// });
+	socket.on('duplicate', () => {
+		alert('userName has been used, please change.');
+		$('btnSend').disabled = true;
+		$('btnLogout').disabled = true;
+		$('btnLogin').disabled = false;
+		// socket.removeAllListeners();
+		// socket = null;
+	});
+	socket.on('login_success', () => {
+		socket.on('logout', name => {
+			AddMsg('user ' + name + 'has leave.');
+		});
+		socket.on('disconnect', () => {
+			AddMsg('disconnect to server.');
+			$('btnSend').disabled = true;
+			$('btnLogout').disabled = true;
+			$('btnLogin').disabled = false;
+			$('divRight').innerHTML = 'user list';
 		});
 		socket.on('sendClients', names => {
 			let divRight = $('divRight');
@@ -92,24 +134,10 @@ function btnLogin_onclick() {
 		});
 		socket.on('chat', data => {
 			AddMsg(data.user + ': ' + data.msg);
-		})
-	});
-	socket.on('disconnect', () => {
-		AddMsg('disconnect to server.');
-		$('btnSend').disabled = true;
-		$('btnLogout').disabled = true;
-		$('btnLogin').disabled = false;
-		$('divRight').innerHTML = 'user list';
-	});
-	socket.on('logout', name => {
-		AddMsg('user ' + name + 'has leave.');
-	});
-	socket.on('duplicate', () => {
-		alert('userName has been used, please change.');
-		$('btnSend').disabled = true;
-		$('btnLogout').disabled = true;
-		$('btnLogin').disabled = false;
-		socket.removeAllListeners();
+		});
+				socket.on('login', name => {
+			AddMsg(name + ' enters the room.');
+		});
 	});
 	socket.on('error', err => {
 		AddMsg('connection error!');
