@@ -5,20 +5,23 @@ let sio = require('socket.io');
 let app = express();
 let server = http.createServer(app);
 app.get('/', (req, res) => {
-	res.sendfile(__dirname + '/index,html');
+	res.sendFile(__dirname + '/index.html');
 });
-server.listen(8080);
+server.listen(8080, () => {
+	console.log('server is listening on port 8080.');
+});
 let io = sio.listen(server);
 let names = [];
 io.sockets.on('connection', socket => {
 	socket.on('login', name => {
-		names.forEach(n => {
-			if (n == name) {
+		for (let i = 0; i < names.length; i ++) {
+			if(names[i] == name) {
 				socket.emit('duplicate');
 				return;
 			}
-		});
+		}
 		names.push(name);
+		console.log(names);
 		io.sockets.emit('login', name);
 		io.sockets.emit('sendClients', names);
 	});
@@ -32,7 +35,8 @@ io.sockets.on('connection', socket => {
 				break;
 			}
 		}
-		socket.broadcast.emit('lgout', name);
+		console.log(names);
+		socket.broadcast.emit('logout', name);
 		io.sockets.emit('sendClients', names);
 	})
 })

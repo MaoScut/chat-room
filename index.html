@@ -9,9 +9,10 @@
 	<table id='tbDlg'>
 		<tr id='trDlg'>
 			<td id='tdDlg'>
+			user name: &nbsp
 				<input id='tbxUsername' type="text" value='tourist'>
-				<input id='btnLogin' type="text" value='login'>
-				<input id='btnLogout' type="text" value='logout'>
+				<input id='btnLogin' type="button" value='login'>
+				<input id='btnLogout' type="button" value='logout'>
 			</td>
 		</tr>
 	</table>
@@ -30,12 +31,24 @@
 		</table>
 	</div>
 </div>
-<div></div>
+<div id='divRight'>
+	user list:
+</div>
 </body>
 </html>
-<script type="text/javascript" src='/socket.io.js'></script>
+<script type="text/javascript" src='https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.3/socket.io.js'></script>
 <script type="text/javascript">
 let userName, socket, tbxUsername, tbxMsg, divChat;
+window.onload = function() {
+	$('btnLogin').addEventListener('click', btnLogin_onclick);
+	$('btnLogout').addEventListener('click', btnLogout_onclick);
+	$('btnSend').addEventListener('click', btnSend_onclick);
+	divChat = $('divchat');
+	tbxUsername = $('tbxUsername');
+	tbxMsg = $('tbxMsg');
+	tbxUsername.focus();
+	tbxUsername.select();//??
+}
 
 function $(id) {
 	return document.getElementById(id);
@@ -64,9 +77,9 @@ function btnLogin_onclick() {
 	userName = tbxUsername.value.trim();
 	socket = io.connect();
 	socket.on('connect', () => {
-		AddMsg('finish connection.');
+		AddMsg('try connect.');
 		socket.on('login', name => {
-			AddMsg(name + 'enters the room.');
+			AddMsg(name + ' enters the room.');
 		});
 		socket.on('sendClients', names => {
 			let divRight = $('divRight');
@@ -94,8 +107,9 @@ function btnLogin_onclick() {
 	socket.on('duplicate', () => {
 		alert('userName has been used, please change.');
 		$('btnSend').disabled = true;
-		$('btnlogout').disabled = true;
+		$('btnLogout').disabled = true;
 		$('btnLogin').disabled = false;
+		socket.removeAllListeners();
 	});
 	socket.on('error', err => {
 		AddMsg('connection error!');
@@ -105,8 +119,8 @@ function btnLogin_onclick() {
 	});
 	socket.emit('login', userName);
 	$('btnSend').disabled = false;
-	$('btnlogout').disabled = false;
-	$('btnlogin').disabled = true;
+	$('btnLogout').disabled = false;
+	$('btnLogin').disabled = true;
 }
 
 function btnSend_onclick() {
@@ -121,11 +135,11 @@ function btnLogout_onclick() {
 	socket.disconnect();
 	socket.removeAllListeners('connect');
 	io.sockets = {};
-	AddMsg('user ' + userName + 'has leave.');
+	AddMsg('user ' + userName + ' has leave.');
 	let divRight = $('divRight');
 	divRight.innerHTML = 'user list';
 	$('btnSend').disabled = true;
-	$('btnlogout').disabled = true;
+	$('btnLogout').disabled = true;
 	$('btnLogin').disabled = false;
 }
 
